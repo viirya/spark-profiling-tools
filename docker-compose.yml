@@ -1,0 +1,80 @@
+namenode:
+  image: yarn-cluster
+  container_name: namenode
+  hostname: namenode
+  ports:
+    - "8088:8088"
+    - "9000:9000"
+    - "50010:50010"
+    - "50020:50020"
+    - "50075:50075"
+    - "50090:50090"
+    - "8030:8030"
+    - "8031:8031"
+    - "8032:8032"
+    - "8033:8033"
+    - "8040:8040"
+    - "8042:8042"
+    - "19888:19888"
+  command: "/etc/bootstrap.sh -d -namenode"
+  volumes:
+    - ../../../docker_tmp:/opt/tmp
+datanode:
+  image: yarn-cluster
+  container_name: datanode
+  links:
+    - "namenode:namenode"
+  ports:
+    - "50070:50070"
+  hostname: datanode 
+  dns: "docker inspect --format=\"{{ .NetworkSettings.IPAddress }}\" namenode"
+  command: "/etc/bootstrap.sh -d -datanode"
+influxdb:
+  image: influxdb
+  container_name: influxdb
+  hostname: influxdb
+  links:
+    - "namenode:namenode"
+    - "datanode:datanode"
+  dns: "docker inspect --format=\"{{ .NetworkSettings.IPAddress }}\" namenode"
+  ports:
+    - "8086:8086"
+    - "8083:8083"
+    - "2003:2003"
+  volumes:
+    - ../../../docker_tmp/influxdb:/var/lib/influxdb
+    - ../../../docker_tmp:/opt/tmp
+  environment:
+    - INFLUXDB_DB=sparkdb
+    - INFLUXDB_ADMIN_ENABLED=true
+    - INFLUXDB_ADMIN_USER=admin
+    - INFLUXDB_ADMIN_PASSWORD=admin
+dr-elephant-mysql:
+  image: mysql:5.7
+  container_name: dr-elephant-mysql
+  hostname: dr-elephant-mysql
+  dns: "docker inspect --format=\"{{ .NetworkSettings.IPAddress }}\" namenode"
+  environment:
+    - MYSQL_DATABASE=drelephant
+    - MYSQL_ROOT_PASSWORD=drelephant
+  volumes:
+    - mysql-data:/var/lib/mysql
+dr-elephant:
+  image: dr-elephant
+  container_name: dr-elephant
+  hostname: dr-elephant
+  environment:
+    - SPARK_HOME=/opt/tmp/spark-2.3.0-bin-hadoop2.7
+  ports:
+    - "9001:9000"
+  links:
+    - "dr-elephant-mysql:dr-elephant-mysql"
+    - "namenode:namenode"
+    - "datanode:datanode"
+  dns: "docker inspect --format=\"{{ .NetworkSettings.IPAddress }}\" namenode"
+  volumes:
+    - ./etc/hadoop:/usr/local/hadoop/etc/hadoop/
+    - ./dr-elephant-logs:/dr-elephant/logs
+    - ./etc/app-conf/elephant.conf:/dr-elephant/app-conf/elephant.conf
+    - ./etc/app-conf:/dr-elephant/app-conf
+    - ../../../docker_tmp:/opt/tmp
