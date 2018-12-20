@@ -123,3 +123,13 @@ The parameters for statsd-jvm-profiler is a bit complicated. If using InfluxDB a
 statsd-jvm-profiler provides a Node.js app as dashboard for InfluxDB backend. But it is quite out of date. The main issue is that the `influx` npm module it uses is too old and not compatible with latest InfluxDB which is used by the InfluxDB Docker image. I've submitted a [PR](https://github.com/etsy/statsd-jvm-profiler/pull/52) to fix it. But this project seems inactive for a while, I'm not sure if it will be reviewd and accepted. If it is not, you can still use the changed code in the forked branch.
 
 ## jvm-profiler
+
+### Features
+
+* Profiling JVM processes
+* Java-agent based
+* Metrics
+    * CPU/Memory, GC, I/O, stacktraces
+* Collects logs by using Kafka
+* Provides a script to generate flamegraph for stacktraces visualization
+    * Lacks built-in support for visualizing other metrics
