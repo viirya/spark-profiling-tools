@@ -65,6 +65,15 @@ After building the image of Dr. Elephant, submit a Spark job and profile it insi
 
 Then open browser to `http://localhost:9001` to see profiling result. Note Dr. Elephant doesn't support Spark 2.x for now.
 
+Note that for profiling Spark jobs, you might need to mark out the following fetcher in the config file `FetcherConf.xml`:
+
+```
+<fetcher>
+    <applicationtype>tez</applicationtype>
+    <classname>com.linkedin.drelephant.tez.fetchers.TezFetcher</classname>
+</fetcher>
+```
+
 ## Babar
 
 ### Features
@@ -91,7 +100,16 @@ After babar jar files are built, submit Spark job and profile it inside YARN doc
     /usr/local/hadoop/bin/yarn logs --applicationId=application_1545097810792_0001 > SparkApp.log
     # Produces HTML report
     java -jar /path_to_babar/babar-processor/target/babar-processor-0.2.0-SNAPSHOT.jar SparkApp.log
-  
+
+Note that in order to collect logs via YARN log aggregation, we need to enable it in `yarn-site.xml`:
+
+```
+<property>
+    <name>yarn.log-aggregation-enable</name>
+    <value>true</value>
+</property>
+```
+
 ## statsd-jvm-profiler
 
 ### Features
